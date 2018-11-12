@@ -68,11 +68,14 @@ while True:
                 cwnd_size += 1
             else:
                 cwnd_size *= 2
-            if cwnd_size > max_cwnd_size:
-                cwnd_size = max_cwnd_size
+            # if cwnd_size > max_cwnd_size:
+                # cwnd_size = max_cwnd_size
         else:
             cache = cache[temp_ack_list.index(max(temp_ack_list)):]
-            cwnd_size = cwnd_size // 2
+            if cwnd_size == 1:
+                cwnd_size = 1
+            else:
+                cwnd_size = cwnd_size // 2
             congestion_state = 1
         seq_number = max(temp_ack_list)
     except socket.timeout:
@@ -82,6 +85,7 @@ while True:
             cache = cache[temp_ack_list.index(max(temp_ack_list)):]
         cwnd_size = 1
         congestion_state = 0
+        seq_number = max(temp_ack_list)
     batch_size = 0
     for i in range(cwnd_size):
         if i < len(cache):
