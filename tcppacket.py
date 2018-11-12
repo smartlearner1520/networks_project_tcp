@@ -21,7 +21,7 @@ import struct
 # +---------------------------------------------------------------+
 
 class TcpPacket:
-    def __init__(self, sequence_number=0, acknowledgement_number=0, buffer_size=4096, data='default', ack=0, syn=0, fin=0):
+    def __init__(self, sequence_number=0, acknowledgement_number=0, buffer_size=4096, data='', ack=0, syn=0, fin=0):
         self.raw = None
         self.sequence_number = sequence_number
         self.acknowledgement_number = acknowledgement_number
