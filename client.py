@@ -1,4 +1,4 @@
-from tcppacket import TcpPacket as tcp_packet
+from tcppacket import TcpPacket
 import socket
 import random
 
@@ -11,7 +11,7 @@ socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 def connect(server_address, port_number):
     server = (server_address, port_number)
     sequence_number = random.randint(0, 10000)
-    packet = tcp_packet(syn=1, ack=0, sequence_number=sequence_number)
+    packet = TcpPacket(syn=1, ack=0, sequence_number=sequence_number)
     socket.sendto(packet.packet, server)
 
 

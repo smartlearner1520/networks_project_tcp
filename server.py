@@ -1,12 +1,13 @@
 import socket
 import struct
 import random
-from tcppacket import TcpPacket as tcp_packet
+import time
+from tcppacket import TcpPacket
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_address = ('127.0.0.1', 20468)
 socket.bind(server_address)
-
+expected_sequence_number = 0
 
 while True:
     data, address = socket.recvfrom(4096)
@@ -22,19 +23,34 @@ while True:
     seq_num = 0
     ack_num = 0
     print(recv_ack, recv_syn, recv_fin)
-    if recv_syn > 0 and recv_ack == 0:  # If it's a SYN packet
+    # SYN Packet
+    if recv_syn > 0 and recv_ack == 0:
         seq_num = random.randint(0, 10000)
         ack_num = recv_seq_number + 1
-        packet = tcp_packet(syn=1, ack=1, sequence_number=seq_num, acknowledgement_number=ack_num)
+        expected_sequence_number = ack_num
+        packet = TcpPacket(syn=1, ack=1, sequence_number=seq_num, acknowledgement_number=ack_num)
         socket.sendto(packet.packet, address)
+    # SYN + ACK Packet
     elif recv_syn > 0 and recv_ack > 0:
-        seq_num = recv_ack_number
-        ack_num = recv_seq_number + 1
-        packet = tcp_packet(ack=1, sequence_number=seq_num, acknowledgement_number=ack_num, data='sending data')
-        socket.sendto(packet.packet, address)
+        if expected_sequence_number == seq_num:
+            seq_num = recv_ack_number
+            ack_num = recv_seq_number + 1
+            expected_sequence_number = ack_num
+            packet = TcpPacket(ack=1, sequence_number=seq_num, acknowledgement_number=ack_num, data='sending data')
+            socket.sendto(packet.packet, address)
+        else:
+            seq_num = recv_ack_number
+            ack_num = expected_sequence_number
+            packet = TcpPacket(ack=1, sequence_number=seq_num, acknowledgement_number=ack_num, data='Missed Packet!')
+    # ACK Packet
     elif recv_ack > 0:
-        seq_num = recv_ack_number
-        ack_num = recv_seq_number + packet_length
-        packet = tcp_packet(ack=1, sequence_number=seq_num, acknowledgement_number=ack_num, data="received...")
-    elif recv_ack < 0:
+        if expected_sequence_number == seq_num:
+            seq_num = recv_ack_number
+            ack_num = recv_seq_number + packet_length
+            packet = TcpPacket(ack=1, sequence_number=seq_num, acknowledgement_number=ack_num, data="received...")
+        else:
+            seq_num = recv_ack_number
+            ack_num = expected_sequence_number
+            packet = TcpPacket()
+
 
